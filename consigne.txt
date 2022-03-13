@@ -1,0 +1,9 @@
+[11:59] Ludivine Crepin
+Adresse API : http://ludivinecrepin.fr/api/
+1. Faire une application qui permet de lister, ajouter et modifier les poneys.
+2. Rendre le 1 en mono page.
+3. ajouter à votre monopage la gestion des courses.Technologies : JS natif ou Jquery ou un mix des deux
+CSS facultatif
+Index of /api
+
+

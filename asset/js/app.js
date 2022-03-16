@@ -1,62 +1,71 @@
-// varaible URL 
+// variable URL 
 const urlGet ='http://ludivinecrepin.fr/api/pony-get.php'
 let html =''
+let app = undefined;
 // fonctions
 
-
+function urlId(id)
+{
+    return 'http://ludivinecrepin.fr/api/pony-get-id.php/'+id
+}
 
 // onClick='addData()
-function poneyForm(poneyDetail ='')
-{    
-    let title = 'Ajouter un poney'
-    if(poneyDetail!==''){
+function poneyForm(poneyDetail)
+{
+    const formDiv = document.createElement('div');    
+    let title = 'Ajouter un poney';
+    if (poneyDetail !== undefined){
         title = `Modifier les information de ${poneyDetail.name}`;
         nameForHtml = poneyDetail.name;
         colorForHtml = poneyDetail.color;
         ageForHtml = poneyDetail.age;
-    }else{
+    } else {
         nameForHtml = '';
         colorForHtml = '';
         ageForHtml = '';
     }
-    let html = ` 
-    <h1>${title}</h1>  
-    <form id='form'>
-   
-    <label for="name">Nom du poney : </label>
-    <input type="text" id="name" name="name" value='${nameForHtml}' placeholder='Ex : petitTonnaier'>
+    let html = `
+    <div> 
+        <h1>${title}</h1>  
+        <form id='form'>
 
-    <label for="color">Couleur du poney</label>
-    <input type="text" id="color" name="color" value='${colorForHtml}' placeholder='Ex : noir'>
+            <label for="name">Nom du poney : </label>
+            <input type="text" id="name" name="name" value='${nameForHtml}' placeholder='Ex : petitTonnaire'>
 
-    <label for="age">Age du poney</label>
-    <input type="number" id="age" name="number" value='${ageForHtml}'' placeholder='Ex : 25'>
-    <div class='parent'>
-    <button type='button' id='envoyer'>envoyer</button>
+            <label for="color">Couleur du poney</label>
+            <input type="text" id="color" name="color" value='${colorForHtml}' placeholder='Ex : noir'>
+
+            <label for="age">Age du poney</label>
+            <input type="number" id="age" name="number" value='${ageForHtml}'' placeholder='Ex : 25'>
+            <div class='parent'>
+            <button type='button' id='envoyer'>envoyer</button>
+            </div>
+        
+        </form>
     </div>
-    
-    </form>
-    
-    `
-    return html
+    `;
+    formDiv.innerHTML = html;
+    return formDiv;
 }
 
 // reset de la div app
 async function reset(){
     document.body.innerHTML = `<div class='wrap' id="app"></div>`;    
-    return document.querySelector('#app') 
+    app = document.querySelector('#app'); 
 }
 // page d'accueil
 async function home()
 {   
-    reset()
-    apiCall(urlGet)
-    app.innerHTML += poneyForm()
+    reset();
+    initializationCall(urlGet)  // initialization
+    app = document.querySelector('#app')    
+    console.log(app)
+    app.appendChild(poneyForm());
     sendForm()
 
 }
 // appel la fonction home() lors d'un clik sur le bouton retour
-function btnBack(){
+function registerBtnBack(){
     const btnBack = document.querySelector('#back')
     btnBack.addEventListener('click', () => home())
 }
@@ -73,31 +82,92 @@ function sendForm(){
         console.log(color.value);
         
         addJsonData(name.value,color.value,age.value)
+    })    
+}
+// TODO: creation div content pour un poney
+function divPoney(poney)
+{        
+    // <div id='${poney.id}' class='content'>
+    //     <div class='name'> Nom : ${poney.name}</div>
+    //     <div class='color'>Couleur : ${poney.color}</div>
+    //     <div class='age'> Age : ${poney.age}</div>
+    // </div>
+    const divPoney = document.createElement('div');
+    divPoney.className = 'content';
+    divPoney.setAttribute('id', String(poney.id));
+    const divPoneyName = document.createElement('div')
+    divPoneyName.className = 'name';
+    divPoneyName.textContent = `Nom : ${poney.name}`;
+    divPoney.appendChild(divPoneyName);
+    const divPoneyCouleur = document.createElement('div')
+    divPoneyCouleur.className = 'color';
+    divPoneyCouleur.textContent = `Couleur : ${poney.color}`;
+    divPoney.appendChild(divPoneyCouleur);
+    const divPoneyAge = document.createElement('div')
+    divPoneyAge.className = 'age';
+    divPoneyAge.textContent = `Age : ${poney.age}`;
+    divPoney.appendChild(divPoneyAge);
+
+    divPoney.addEventListener('click', () => {
+        // on recup l'id du contenu pour genère le detail e l'url
+        const url =  urlId(poney.id)
+        fetch(url)
+        .then(function(reponse){
+            return reponse.json();
+        })
+        .then(function(poneyDetail){
+            console.log(poneyDetail);
+            reset();
+            app.appendChild(poneyDetailHtml(poneyDetail));
+            app.appendChild(detailMenu());
+            // modifié les info du ponney
+            const btnModify = document.querySelector('#modify')
+            btnModify.addEventListener('click', () => {
+                app.appendChild(poneyForm(poneyDetail));
+                const btn = document.querySelector('#envoyer')
+                console.log(btn);
+                btn.addEventListener('click', () => {
+                    const test ={
+                        'id' : 1,
+                        'name' : 'testName',
+                        'color' : 'testColor',
+                        'age' : '24',
+                    }
+                    modifyData(test)
+                })
+                registerBtnBack()
+            })
+            registerBtnBack()
+        })
     })
-    
+
+    return divPoney;
 }
 
-
-function urlId(id)
-{
-    return 'http://ludivinecrepin.fr/api/pony-get-id.php/'+id
-}
 
 function poneyDetailHtml(poneyDetail)
 {
-return `
+    const divPoneyDetail = document.createElement('div');
+    divPoneyDetail.innerHTML = `
     <div class='content'> 
         <h2>ID    : ${poneyDetail.id}, ${poneyDetail.name} </h2>
         <span>Age : ${poneyDetail.age}</span>
         <span>Age : ${poneyDetail.color}</span>
     </div>
-    <div class='parent'>
+    `;
+    return divPoneyDetail;
+}
+
+function detailMenu() {
+    const menu = document.createElement('div');
+    menu.innerHTML = 
+    `<div class='parent'>
         <div id='modify'>Modifier</div>
         <div id='back'>Retour</div>        
-    </div>
-    
-`
+    </div>`;
+    return menu;
 }
+
 // lorqu'on clique sur un ponney on revoit le detail de se dernier, on peut également modifie ici le ponney (pas encore fait)
 function showDetail(divs)
 {
@@ -106,26 +176,22 @@ function showDetail(divs)
             // on recup l'id du contenu pour genère le detail e l'url
             id = div.id
             const url =  urlId(id)
-            reset();
+            reset(); 
             fetch(url)
             .then(function(reponse){
                 return reponse.json();
             })
             .then(function(poneyDetail){
                 console.log(poneyDetail);
-                app.innerHTML += poneyDetailHtml(poneyDetail)
+                app.appendChild(poneyDetailHtml(poneyDetail));
+                app.appendChild(detailMenu());
                 // modifié les info du ponney
                 const btnModify = document.querySelector('#modify')
                 btnModify.addEventListener('click', () => {
-                    app.innerHTML += poneyForm(poneyDetail)
+                    app.appendChild(poneyForm(poneyDetail));
                     const btn = document.querySelector('#envoyer')
                     console.log(btn);
                     btn.addEventListener('click', () => {
-                        // console.log(poneyDetail.id);
-                        // console.log(poneyDetail.name);
-                        // console.log(poneyDetail.color);
-                        // console.log(poneyDetail.age);
-                        // modifuData(poneyDetail)
                         test ={
                             'id' : 1,
                             'name' : 'testName',
@@ -134,16 +200,15 @@ function showDetail(divs)
                         }
                         modifyData(test)
                     })
-                    // 
-                    btnBack()
+                    registerBtnBack()
                 })
-                btnBack()
+                registerBtnBack()
             })
         })
     });
 }
 // liste l'ensemble des ponneys
-async function apiCall(url)
+function initializationCall(url)
 {
     fetch(url)
     .then(function(response) {
@@ -152,15 +217,17 @@ async function apiCall(url)
     .then(function(poneys){
         // boucle de tous les elements de l'api
         poneys.forEach(poney => {    
-            html += `
-            <div id='${poney.id}' class='content'>
-                <div class='name'> Nom : ${poney.name}</div>
-                <div class='color'>Couleur : ${poney.color}</div>
-                <div class='age'> Age : ${poney.age}</div>
-            </div>            
-            `         
-        })  
-        app.innerHTML += html
+            const poneyEl = divPoney(poney)
+            app.appendChild(poneyEl);
+        });
+
+        // <div id="app">
+        //     <div class="content">
+        //     <div>Name</div>
+        //     ...
+        //     </div>
+        // </div>
+          
     })
     .then(function(){
         let contents = document.querySelectorAll('.content')        
@@ -236,4 +303,17 @@ function modifyData(element){
 // addJsonData('test','fakeD',42)
 // modifyJsonData(1,'42','42','42');
 // appel de la page de base au début
+
+function poneyDetailHTMLMAEl(poneys) {
+    return poneys.map(poney => `<div class='content'> 
+        <h2>ID    : ${poneyDetail.id}, ${poneyDetail.name} </h2>
+        <span>Age : ${poneyDetail.age}</span>
+        <span>Age : ${poneyDetail.color}</span>
+    </div>
+    <div class='parent'>
+        <div id='modify'>Modifier</div>
+        <div id='back'>Retour</div>        
+    </div>`)
+}
+
 home()

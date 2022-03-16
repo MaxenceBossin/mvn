@@ -49,7 +49,7 @@ function reset(){
 async function home()
 {   
     reset()
-    apiCall(urlGet)
+    initializationCall(urlGet)
     app.innerHTML = poneyForm()
     sendForm()
 
@@ -125,7 +125,7 @@ function showDetail(divs)
     });
 }
 // liste l'ensemble des ponneys
-function apiCall(url)
+function initializationCall(url)
 {
     fetch(url)
     .then(function(response) {
